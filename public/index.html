@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recipe Manager</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>👨‍🍳 Recipe Management System</h1>
+        <p>Find, Cook, and Review your favorite meals.</p>
+      </header>
+
+      <div class="card profile-section">
+        <h2>1. Create Your Profile</h2>
+        <div class="form-group">
+          <input type="text" id="username" placeholder="Enter your name" />
+          <select id="userDiet">
+            <option value="">No Diet Preference</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="gluten-free">Gluten Free</option>
+          </select>
+          <input
+            type="text"
+            id="allergies"
+            placeholder="Allergies (e.g., peanuts)"
+          />
+          <button onclick="createProfile()">Save Profile</button>
+        </div>
+      </div>
+
+      <div class="card search-section">
+        <h2>2. Find Recipes</h2>
+        <div class="search-bar">
+          <input
+            type="text"
+            id="query"
+            placeholder="What do you want to cook? (e.g., Pasta)"
+          />
+
+          <select id="searchDiet">
+            <option value="">Any Diet</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="gluten-free">Gluten Free</option>
+            <option value="ketogenic">Keto</option>
+          </select>
+
+          <button onclick="searchRecipes()">Search Recipes</button>
+        </div>
+      </div>
+
+      <div id="results" class="recipe-grid"></div>
+    </div>
+
+    <div id="reviewModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle">Rate Recipe</h3>
+
+        <input
+          type="number"
+          id="reviewRating"
+          min="1"
+          max="5"
+          placeholder="Rating (1-5)"
+        />
+        <textarea
+          id="reviewText"
+          rows="4"
+          placeholder="Write your review here..."
+        ></textarea>
+
+        <button onclick="submitReview()">Submit Review</button>
+
+        <div id="existingReviews" class="reviews-list"></div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

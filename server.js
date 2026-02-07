@@ -2,7 +2,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
+require("dotenv").config();
 const app = express();
 
 //middlrware
@@ -10,13 +10,30 @@ app.use(cors()); // Allows our frontend to talk to this server
 app.use(bodyParser.json()); // Allows us to read JSON data sent from frontend
 app.use(express.static("public")); // Serves our HTML files automatically
 
+
+
+// // Add this DEBUG BLOCK (Delete this after fixing!)
+// console.log("---------------- DEBUGGING ----------------");
+// console.log("Host:", process.env.DB_HOST);
+// console.log("User:", process.env.DB_USER); // <--- This MUST show the long string (e.g. DA5TFF...root)
+// console.log("Pass:", process.env.DB_PASSWORD ? "****" : "MISSING");
+// console.log("-------------------------------------------");
+
+
+
+
 //db
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "2141019402",
-  database: "RecipeSystem",
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "2141019402",
+  database: process.env.DB_NAME || "RecipeSystem",
+  port: process.env.DB_PORT || 3306,
+  ssl: process.env.DB_HOST ? { rejectUnauthorized: true } : false,
 });
+
+
+
 
 db.connect((err) => {
   if (err) {

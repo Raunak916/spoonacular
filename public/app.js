@@ -1,10 +1,11 @@
 //config
-const API_KEY = "92bebb1431fd443790f0e3a34ed65bbc"; // <--- PUT YOUR KEY HERE
+const API_KEY = "92bebb1431fd443790f0e3a34ed65bbc"; //
 const API_BASE = "https://api.spoonacular.com/recipes/complexSearch";
 
 //state
 let currentUserId = null;
 let currentRecipeId = null;
+let currentRecipes = [];
 
 async function createProfile() {
   const username = document.getElementById("username").value;
@@ -40,7 +41,7 @@ async function searchRecipes() {
   const diet = document.getElementById("searchDiet").value;
 
   // iss search ke liye ek unique cache key for local storage
-  const cacheKey = `search_${query}_${diet}`;
+  const cacheKey = `search_${query}_${diet}_v2`;
 
   //check cache
   const cachedData = localStorage.getItem(cacheKey);
@@ -54,7 +55,7 @@ async function searchRecipes() {
   console.log("Fetching from API...");
 
   //addRecipeInformation=true se hume recipe ke details bhi milenge, jisse hum review section me use karenge
-  const url = `${API_BASE}?apiKey=${API_KEY}&query=${query}&diet=${diet}&addRecipeInformation=true&number=9`;
+  const url = `${API_BASE}?apiKey=${API_KEY}&query=${query}&diet=${diet}&addRecipeInformation=true&addRecipeNutrition=true&number=9`;
 
   try {
     const response = await fetch(url);
@@ -82,6 +83,7 @@ function displayRecipes(recipes) {
     container.innerHTML = "<p>No recipes found.</p>";
     return;
   }
+  currentRecipes = recipes;
 
   recipes.forEach((recipe) => {
     const card = document.createElement("div");
@@ -90,6 +92,7 @@ function displayRecipes(recipes) {
             <img src="${recipe.image}" alt="${recipe.title}">
             <h3>${recipe.title}</h3>
             <p>Ready in ${recipe.readyInMinutes} mins</p>
+            <button class="view-btn" onclick="showRecipeDetails(${recipe.id})">📖 View Recipe</button>
             <button onclick="openReview(${recipe.id}, '${recipe.title.replace(/'/g, "")}')">Rate & Review</button>
         `;
     container.appendChild(card);
@@ -123,28 +126,87 @@ async function openReview(recipeId, title) {
   }
 }
 
-
 async function submitReview() {
-    if (!currentUserId) return alert("Please create a profile first (Step 1)!");
+  if (!currentUserId) return alert("Please create a profile first (Step 1)!");
 
-    const rating = document.getElementById('reviewRating').value;
-    const comment = document.getElementById('reviewText').value;
+  const rating = document.getElementById("reviewRating").value;
+  const comment = document.getElementById("reviewText").value;
 
-    await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            recipeId: currentRecipeId, 
-            userId: currentUserId, 
-            rating, 
-            comment 
-        })
-    });
+  await fetch("/api/reviews", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      recipeId: currentRecipeId,
+      userId: currentUserId,
+      rating,
+      comment,
+    }),
+  });
 
-    alert("Review Submitted!");
-    closeModal();
+  alert("Review Submitted!");
+  closeModal();
 }
 
 function closeModal() {
-    document.getElementById('reviewModal').style.display = 'none';
+  document.getElementById("reviewModal").style.display = "none";
+}
+
+async function showRecipeDetails(recipeId) {
+  console.log("Fetching details for ID:", recipeId);
+  if (!recipeId) return;
+  document.getElementById("recipeDetailModal").style.display = "block";
+  document.getElementById("detailTitle").innerText = "Loading...";
+
+  try {
+    const url = `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${API_KEY}&includeNutrition=true`;
+    const response = await fetch(url);
+    const recipe = await response.json();
+
+    document.getElementById("detailTitle").innerText = recipe.title;
+    document.getElementById("detailImage").src = recipe.image;
+    document.getElementById("detailTime").innerText = recipe.readyInMinutes;
+    document.getElementById("detailServings").innerText = recipe.servings;
+
+    const ingList = document.getElementById("detailIngredients");
+    if (recipe.extendedIngredients) {
+      ingList.innerHTML = recipe.extendedIngredients
+        .map((ing) => `<li>${ing.original}</li>`)
+        .join("");
+    } else {
+      ingList.innerHTML = "<li>Ingredients info missing.</li>";
+    }
+
+    const instList = document.getElementById("detailInstructions");
+    if (recipe.analyzedInstructions && recipe.analyzedInstructions.length > 0) {
+      instList.innerHTML = recipe.analyzedInstructions[0].steps
+        .map((step) => `<li>${step.step}</li>`)
+        .join("");
+    } else {
+      instList.innerHTML = "<li>Instructions not provided by source URL.</li>";
+    }
+
+    const nutDiv = document.getElementById("detailNutrition");
+    if (recipe.nutrition && recipe.nutrition.nutrients) {
+      const nutrients = recipe.nutrition.nutrients.filter((n) =>
+        ["Calories", "Protein", "Fat", "Carbohydrates"].includes(n.name),
+      );
+      nutDiv.innerHTML = nutrients
+        .map(
+          (n) =>
+            `<span><strong>${n.name}:</strong> ${n.amount}${n.unit}</span>`,
+        )
+        .join(" | ");
+    } else {
+      nutDiv.innerHTML = "Nutrition info not available.";
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Failed to load recipe details.");
+    closeRecipeModal();
+  }
+ 
+}
+
+function closeRecipeModal() {
+  document.getElementById("recipeDetailModal").style.display = "none";
 }

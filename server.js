@@ -11,17 +11,6 @@ app.use(bodyParser.json()); // Allows us to read JSON data sent from frontend
 app.use(express.static("public")); // Serves our HTML files automatically
 
 
-
-// // Add this DEBUG BLOCK (Delete this after fixing!)
-// console.log("---------------- DEBUGGING ----------------");
-// console.log("Host:", process.env.DB_HOST);
-// console.log("User:", process.env.DB_USER); // <--- This MUST show the long string (e.g. DA5TFF...root)
-// console.log("Pass:", process.env.DB_PASSWORD ? "****" : "MISSING");
-// console.log("-------------------------------------------");
-
-
-
-
 //db
 const db = mysql.createConnection({
   host: process.env.DB_HOST || "localhost",
@@ -81,8 +70,8 @@ app.post("/api/reviews", (req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 3000}`);
 });
 
 /* 
